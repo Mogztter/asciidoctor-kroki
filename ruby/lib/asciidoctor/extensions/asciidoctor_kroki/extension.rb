@@ -200,8 +200,8 @@ module AsciidoctorExtensions
 
       def get_format(doc, attrs, diagram_type)
         format = attrs['format'] || 'svg'
-        # The JavaFX preview doesn't support SVG well, therefore we'll use PNG format...
-        if doc.attr?('env-idea') && format == 'svg'
+        # If the media we're preparing for doesn't support SVG well, use PNG instead...
+        if doc.attr?('kroki-force-png') && format == 'svg'
           # ... unless the diagram library does not support PNG as output format!
           # Currently, mermaid, nomnoml, svgbob, wavedrom only support SVG as output format.
           svg_only_diagram_types = %w[:mermaid :nomnoml :svgbob :wavedrom]

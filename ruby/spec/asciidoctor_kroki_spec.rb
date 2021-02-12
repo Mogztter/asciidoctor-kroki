@@ -20,14 +20,14 @@ describe ::AsciidoctorExtensions::KrokiBlockProcessor do
 </div>
 </div>)
     end
-    it 'should use png if env-idea is defined' do
+    it 'should use png if kroki-force-png is defined' do
       input = <<~'ADOC'
         [plantuml]
         ....
         alice -> bob: hello
         ....
       ADOC
-      output = Asciidoctor.convert(input, attributes: { 'env-idea' => '' }, standalone: false)
+      output = Asciidoctor.convert(input, attributes: { 'kroki-force-png' => '' }, standalone: false)
       (expect output).to eql %(<div class="imageblock kroki">
 <div class="content">
 <img src="https://kroki.io/plantuml/png/eNpLzMlMTlXQtVNIyk-yUshIzcnJBwA9iwZL" alt="Diagram">
@@ -41,7 +41,7 @@ describe ::AsciidoctorExtensions::KrokiBlockProcessor do
         alice -> bob: hello
         ....
       ADOC
-      output = Asciidoctor.convert(input, attributes: { 'env-idea' => '', 'kroki-plantuml-include' => 'spec/fixtures/config.puml' }, standalone: false)
+      output = Asciidoctor.convert(input, attributes: { 'kroki-force-png' => '', 'kroki-plantuml-include' => 'spec/fixtures/config.puml' }, standalone: false)
       (expect output).to eql %(<div class="imageblock kroki">
 <div class="content">
 <img src="https://kroki.io/plantuml/png/eNorzs7MK0gsSsxVyM3Py0_OKMrPTVUoKSpN5eJKzMlMTlXQtVNIyk-yUshIzcnJBwCT9xBc" alt="Diagram">
