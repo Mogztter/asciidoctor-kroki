@@ -18620,9 +18620,10 @@ module.exports.preprocessPlantUML = function (diagramText, context, diagramDir =
  * @returns {string}
  */
 function preprocessPlantUmlIncludes (diagramText, dirPath, includeOnce, includeStack, vfs) {
-  // see: http://plantuml.com/en/preprocessing
-  const regExInclude = /^\s*!(include(?:_many|_once|url|sub)?)\s+((?:(?<=\\)[ ]|[^ ])+)(.*)/
-  const regExTrailingComment = /^\s+[#|\\/']/
+  // See: http://plantuml.com/en/preprocessing
+  // Please note that we cannot use lookbehind for compatibility reasons with Safari: https://caniuse.com/mdn-javascript_builtins_regexp_lookbehind_assertion objects are stateful when they have the global flag set (e.g. /foo/g).
+  //const regExInclude = /^\s*!(include(?:_many|_once|url|sub)?)\s+((?:(?<=\\)[ ]|[^ ])+)(.*)/
+  const regExInclude = /^\s*!(include(?:_many|_once|url|sub)?)\s+([\s\S]*)/
   const diagramLines = diagramText.split('\n')
   let insideCommentBlock = false
   const diagramProcessed = diagramLines.map(line => {
@@ -18633,8 +18634,10 @@ function preprocessPlantUmlIncludes (diagramText, dirPath, includeOnce, includeS
         regExInclude,
         (match, ...args) => {
           const include = args[0].toLowerCase()
-          const urlSub = args[1].trim().split('!')
-          const trailingContent = args[2]
+          const target = parseTarget(args[1])
+          console.log(target)
+          const urlSub = target.url.split('!')
+          const trailingContent = target.comment
           const url = urlSub[0].replace(/\\ /g, ' ')
           const sub = urlSub[1]
           const result = readPlantUmlInclude(url, dirPath, includeStack, vfs)
@@ -18662,8 +18665,8 @@ function preprocessPlantUmlIncludes (diagramText, dirPath, includeOnce, includeS
           includeStack.push(result.filePath)
           text = preprocessPlantUmlIncludes(text, path.dirname(result.filePath), includeOnce, includeStack, vfs)
           includeStack.pop()
-          if (trailingContent.match(regExTrailingComment)) {
-            return text + trailingContent
+          if (trailingContent !== '') {
+            return text + ' ' + trailingContent
           }
           return text
         })
@@ -18677,6 +18680,23 @@ function preprocessPlantUmlIncludes (diagramText, dirPath, includeOnce, includeS
     return result
   })
   return diagramProcessed.join('\n')
+}
+
+function parseTarget (value) {
+  for (let i = 0; i < value.length; i++) {
+    const char = value.charAt(i)
+    if (i > 2) {
+      // # inline comment
+      if (char === '#' && value.charAt(i - 1) === ' ' && value.charAt(i - 2) !== '\\') {
+        return { url: value.substr(0, i - 1).trim(), comment: value.substr(i) }
+      }
+      // /' multi-lines comment '/
+      if (char === '\'' && value.charAt(i - 1) === '/' && value.charAt(i - 2) !== '\\') {
+        return { url: value.substr(0, i - 1).trim(), comment: value.substr(i - 1) }
+      }
+    }
+  }
+  return { url: value, comment: '' }
 }
 
 /**
@@ -18775,10 +18795,10 @@ function getPlantUmlTextRegEx (text, regEx) {
  * @returns {string}
  */
 function getPlantUmlTextFromIndex (text, index) {
-  // please note that RegExp objects are stateful when they have the global flag set (e.g. /foo/g).
+  // Please note that RegExp objects are stateful when they have the global flag set (e.g. /foo/g).
   // They store a lastIndex from the previous match.
   // Using exec() multiple times will return the next occurrence.
-  // reset to find the first occurrence
+  // Reset to find the first occurrence.
   let idx = 0
   plantUmlBlocksRx.lastIndex = 0
   let match = plantUmlBlocksRx.exec(text)
