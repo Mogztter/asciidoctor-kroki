@@ -377,7 +377,7 @@ module AsciidoctorExtensions
       end
 
       def post(uri, data, _)
-        res = ::Net::HTTP.request_post(uri, data)
+        res = ::Net::HTTP.post(URI(uri), data, "Content-Type" => "text/plain")
         res.body
       end
     end
