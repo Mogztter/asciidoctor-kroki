@@ -20,7 +20,7 @@ Metrics/PerceivedComplexity:
   Max: 10
 
 Metrics/AbcSize:
-  Max: 30
+  Max: 31
 
 Metrics/ParameterLists:
   Max: 7

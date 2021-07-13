@@ -146,12 +146,17 @@ module AsciidoctorExtensions
         title = attrs.delete('title')
         caption = attrs.delete('caption')
         attrs.delete('opts')
-        role = attrs['role']
         format = get_format(doc, attrs, diagram_type)
-        attrs['role'] = get_role(format, role)
+        attrs['role'] = get_role(format, attrs['role'])
         attrs['format'] = format
         kroki_diagram = KrokiDiagram.new(diagram_type, format, diagram_text)
-        kroki_client = KrokiClient.new(server_url(doc), http_method(doc), KrokiHttpClient, logger, max_uri_length(doc))
+        kroki_client = KrokiClient.new({
+                                         server_url: server_url(doc),
+                                         http_method: http_method(doc),
+                                         max_uri_length: max_uri_length(doc),
+                                         source_location: doc.reader.cursor_at_mark,
+                                         http_client: KrokiHttpClient
+                                       }, logger)
         if TEXT_FORMATS.include?(format)
           text_content = kroki_client.text_content(kroki_diagram)
           block = processor.create_block(parent, 'literal', text_content, attrs)
@@ -317,21 +322,24 @@ module AsciidoctorExtensions
   # Kroki client
   #
   class KrokiClient
+    include Asciidoctor::Logging
+
     attr_reader :server_url
     attr_reader :method
     attr_reader :max_uri_length
 
     SUPPORTED_HTTP_METHODS = %w[get post adaptive].freeze
 
-    def initialize(server_url, http_method, http_client, logger = ::Asciidoctor::LoggerManager.logger, max_uri_length = 4000)
-      @server_url = server_url
-      @max_uri_length = max_uri_length
-      @http_client = http_client
-      method = (http_method || 'adaptive').downcase
+    def initialize(opts, logger = ::Asciidoctor::LoggerManager.logger)
+      @server_url = opts[:server_url]
+      @max_uri_length = opts.fetch(:max_uri_length, 4000)
+      @http_client = opts[:http_client]
+      method = opts.fetch(:http_method, 'adaptive').downcase
       if SUPPORTED_HTTP_METHODS.include?(method)
         @method = method
       else
-        logger.warn "Invalid value '#{method}' for kroki-http-method attribute. The value must be either: 'get', 'post' or 'adaptive'. Proceeding using: 'adaptive'."
+        logger.warn message_with_context "Invalid value '#{method}' for kroki-http-method attribute. The value must be either: " \
+          "'get', 'post' or 'adaptive'. Proceeding using: 'adaptive'.", source_location: opts[:source_location]
         @method = 'adaptive'
       end
     end

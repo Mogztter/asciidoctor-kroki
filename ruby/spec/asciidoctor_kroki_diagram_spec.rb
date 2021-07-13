@@ -28,7 +28,7 @@ describe ::AsciidoctorExtensions::KrokiDiagram do
   it 'should fetch a diagram from Kroki and save it to disk' do
     kroki_diagram = ::AsciidoctorExtensions::KrokiDiagram.new('plantuml', 'txt', ' alice -> bob: hello')
     kroki_http_client = ::AsciidoctorExtensions::KrokiHttpClient
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('https://kroki.io', 'get', kroki_http_client)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'https://kroki.io', http_method: 'get', http_client: kroki_http_client)
     output_dir_path = "#{__dir__}/../.asciidoctor/kroki"
     diagram_name = kroki_diagram.save(output_dir_path, kroki_client)
     diagram_path = File.join(output_dir_path, diagram_name)
@@ -48,7 +48,7 @@ describe ::AsciidoctorExtensions::KrokiDiagram do
   it 'should fetch a diagram from Kroki with the same definition only once' do
     kroki_diagram = ::AsciidoctorExtensions::KrokiDiagram.new('plantuml', 'png', ' guillaume -> dan: hello')
     kroki_http_client = ::AsciidoctorExtensions::KrokiHttpClient
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('https://kroki.io', 'get', kroki_http_client)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'https://kroki.io', http_method: 'get', http_client: kroki_http_client)
     output_dir_path = "#{__dir__}/../.asciidoctor/kroki"
     # make sure that we are doing only one GET request
     expect(kroki_http_client).to receive(:get).once

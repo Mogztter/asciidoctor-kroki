@@ -7,27 +7,27 @@ require_relative '../lib/asciidoctor/extensions/asciidoctor_kroki'
 describe ::AsciidoctorExtensions::KrokiClient do
   it 'should use adaptive method when http method is invalid' do
     kroki_http_client = ::AsciidoctorExtensions::KrokiHttpClient
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('http://localhost:8000', 'patch', kroki_http_client)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'http://localhost:8000', http_method: 'patch', http_client: kroki_http_client)
     expect(kroki_client.method).to eq('adaptive')
   end
   it 'should use post method when http method is post' do
     kroki_http_client = ::AsciidoctorExtensions::KrokiHttpClient
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('http://localhost:8000', 'POST', kroki_http_client)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'http://localhost:8000', http_method: 'POST', http_client: kroki_http_client)
     expect(kroki_client.method).to eq('post')
   end
   it 'should use get method when http method is get' do
     kroki_http_client = ::AsciidoctorExtensions::KrokiHttpClient
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('http://localhost:8000', 'get', kroki_http_client)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'http://localhost:8000', http_method: 'get', http_client: kroki_http_client)
     expect(kroki_client.method).to eq('get')
   end
   it 'should use 4000 as the default max URI length' do
     kroki_http_client = ::AsciidoctorExtensions::KrokiHttpClient
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('http://localhost:8000', 'get', kroki_http_client)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'http://localhost:8000', http_method: 'get', http_client: kroki_http_client)
     expect(kroki_client.max_uri_length).to eq(4000)
   end
   it 'should use a custom value as max URI length' do
     kroki_http_client = ::AsciidoctorExtensions::KrokiHttpClient
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('http://localhost:8000', 'get', kroki_http_client, nil, 8000)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'http://localhost:8000', http_method: 'get', http_client: kroki_http_client, max_uri_length: 8000)
     expect(kroki_client.max_uri_length).to eq(8000)
   end
   it 'should get an image with POST request if the URI length is greater than the value configured' do
@@ -55,7 +55,7 @@ describe ::AsciidoctorExtensions::KrokiClient do
         'diagram-uri'
       end
     end.new('type', 'format', 'text')
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('http://localhost:8000', 'adaptive', kroki_http_client, nil, 10)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'http://localhost:8000', http_method: 'adaptive', http_client: kroki_http_client, max_uri_length: 10)
     result = kroki_client.get_image(kroki_diagram, 'utf8')
     expect(result).to eq('POST http://localhost:8000/type/format - text')
   end
@@ -84,7 +84,7 @@ describe ::AsciidoctorExtensions::KrokiClient do
         'diagram-uri'
       end
     end.new('type', 'format', 'text')
-    kroki_client = ::AsciidoctorExtensions::KrokiClient.new('http://localhost:8000', 'adaptive', kroki_http_client, nil, 11)
+    kroki_client = ::AsciidoctorExtensions::KrokiClient.new(server_url: 'http://localhost:8000', http_method: 'adaptive', http_client: kroki_http_client, max_uri_length: 11)
     result = kroki_client.get_image(kroki_diagram, 'utf8')
     expect(result).to eq('GET diagram-uri')
   end
